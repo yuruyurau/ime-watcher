@@ -1,0 +1,29 @@
+# Build outputs
+bin/
+obj/
+release/
+*.exe
+*.pdb
+*.dll
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / JetBrains
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary / backup
+*.tmp
+*.log
+*.bak
+*~
+~$*
