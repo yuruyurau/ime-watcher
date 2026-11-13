@@ -30,6 +30,29 @@ class Program
     static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam,
         uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
 
+    [DllImport("user32.dll")]
+    static extern bool GetGUIThreadInfo(uint idThread, ref GUITHREADINFO lpgui);
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct GUITHREADINFO
+    {
+        public uint cbSize;
+        public uint flags;
+        public IntPtr hwndActive;
+        public IntPtr hwndFocus;
+        public IntPtr hwndCapture;
+        public IntPtr hwndMenuOwner;
+        public IntPtr hwndMoveSize;
+        public IntPtr hwndCaret;
+        public RECT rcCaret;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct RECT
+    {
+        public int left, top, right, bottom;
+    }
+
     const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
     const uint WM_IME_CONTROL = 0x0283;
     const int IMC_GETOPENSTATUS = 0x0005;
@@ -140,7 +163,14 @@ class Program
 
     static int GetImeState(IntPtr hwnd)
     {
-        IntPtr imeWnd = ImmGetDefaultIMEWnd(hwnd);
+        var gti = new GUITHREADINFO();
+        gti.cbSize = (uint)Marshal.SizeOf(gti);
+        IntPtr target = hwnd;
+
+        if (GetGUIThreadInfo(0, ref gti) && gti.hwndFocus != IntPtr.Zero)
+            target = gti.hwndFocus;
+
+        IntPtr imeWnd = ImmGetDefaultIMEWnd(target);
         if (imeWnd == IntPtr.Zero) return 0;
 
         IntPtr result;
