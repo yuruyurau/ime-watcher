@@ -1,6 +1,6 @@
 # ime-watcher
 
-A tiny Windows tool that watches the IME state of the foreground window and outputs JSON when it changes.
+A tiny Windows tool that watches the IME state of the foreground window (or its focused child window) and outputs JSON when it changes.
 
 ## Usage
 
@@ -41,7 +41,9 @@ sequenceDiagram
         alt Foreground is Zebar itself
             Watcher->>Watcher: Skip IME state update<br/>(keep previous state)
         else Normal window
-            Watcher->>OS: ImmGetDefaultIMEWnd +<br/>SendMessageTimeout (IMC_GETOPENSTATUS)
+            Watcher->>OS: GetGUIThreadInfo(0)<br/>to get hwndFocus
+            OS-->>Watcher: focused child hwnd<br/>(or original hwnd if none)
+            Watcher->>OS: ImmGetDefaultIMEWnd(focused) +<br/>SendMessageTimeout (IMC_GETOPENSTATUS)
             OS-->>Watcher: IME open status (0 or 1)
 
             alt IME state changed
@@ -70,6 +72,7 @@ The check interval is currently fixed at **200ms**. There are no command-line op
 - Exits automatically when the parent process dies (stdin closed).
 - Single file, no external dependencies.
 - Low CPU usage.
+- Uses `GetGUIThreadInfo` to query the IME state of the actual focused control (not just the foreground parent window).
 
 ## Build & Release
 
